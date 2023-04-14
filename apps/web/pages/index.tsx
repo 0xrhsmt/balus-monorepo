@@ -1,7 +1,9 @@
+import { LoginButton } from "../components/auth";
+
 export default function Web() {
   return (
     <div>
-      <h1>Web</h1>
+      <LoginButton />
     </div>
   );
 }
