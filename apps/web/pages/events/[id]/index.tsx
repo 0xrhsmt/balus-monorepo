@@ -25,6 +25,7 @@ import {
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/solid";
+import LoadingIcon from "../../../components/LoadingIcon";
 
 const GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL;
 
@@ -76,17 +77,18 @@ const Request = ({
 };
 
 export default function DetailsPage() {
-  const { query } = useRouter();
+  const { push, asPath, query, isReady } = useRouter();
   const { id } = query;
 
+  console.log(asPath);
+
+  const [loading, setLoading] = useState(false);
   const [accessToken, setAccessToken] = useState();
   const [description, setDescription] = useState();
   const [postContent, setPostContent] = useState();
 
-  console.log(accessToken)
-
   const { data: profile } = useActiveProfile();
-  const { data: wallet } = useActiveWallet();
+  const { data: wallet, loading: walletLoading } = useActiveWallet();
 
   const { data: event } = useLensBalusEvents({
     enabled: !!id,
@@ -163,8 +165,9 @@ export default function DetailsPage() {
   };
 
   const onPublic = async () => {
+    setLoading(true);
     const data = { id };
-    const response = await fetch("/api/content/public", {
+    await fetch("/api/content/public", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -172,19 +175,34 @@ export default function DetailsPage() {
       body: JSON.stringify(data),
     });
 
-    post();
+    const tx = await post();
+    await tx.wait(1);
+    window.location.reload();
+    setLoading(false);
   };
 
-  const onSetDispatcher = () => {
-    if (setDispatcher) setDispatcher();
+  const onSetDispatcher = async () => {
+    if (setDispatcher) {
+      setLoading(true);
+      const tx = await setDispatcher();
+      await tx.wait(1);
+      window.location.reload();
+      setLoading(false);
+    }
   };
 
-  const onBecomePartner = () => {
-    if (becomePartner) becomePartner();
+  const onBecomePartner = async () => {
+    if (becomePartner) {
+      setLoading(true);
+      const tx = await becomePartner();
+      await tx.wait(1);
+      window.location.reload();
+      setLoading(false);
+    }
   };
 
   const onPost = () => {
-    onPublic()
+    onPublic();
   };
 
   useEffect(() => {
@@ -194,34 +212,53 @@ export default function DetailsPage() {
   useEffect(() => {
     if (!accessToken || !event) return;
 
-    fetch(
-      `${GATEWAY}/ipfs/${event.descriptionCid}?accessToken=${accessToken}`
-    ).then(async (res) => {
-      const json = await res.json();
-      setDescription(json);
-    }).catch((err) => {
-      return fetch(
-        `${GATEWAY}/ipfs/${event.descriptionCid}}`
-      ).then(async (res) => {
+    fetch(`${GATEWAY}/ipfs/${event.descriptionCid}?accessToken=${accessToken}`)
+      .then(async (res) => {
         const json = await res.json();
-        setPostContent(json);
+        setDescription(json);
       })
-    })
+      .catch((err) => {
+        return fetch(`${GATEWAY}/ipfs/${event.descriptionCid}}`).then(
+          async (res) => {
+            const json = await res.json();
+            setPostContent(json);
+          }
+        );
+      });
 
-    fetch(
-      `${GATEWAY}/ipfs/${event.postContentCid}?accessToken=${accessToken}`
-    ).then(async (res) => {
-      const json = await res.json();
-      setPostContent(json);
-    }).catch((err) => {
-      return fetch(
-        `${GATEWAY}/ipfs/${event.postContentCid}}`
-      ).then(async (res) => {
+    fetch(`${GATEWAY}/ipfs/${event.postContentCid}?accessToken=${accessToken}`)
+      .then(async (res) => {
         const json = await res.json();
         setPostContent(json);
       })
-    })
+      .catch((err) => {
+        return fetch(`${GATEWAY}/ipfs/${event.postContentCid}}`).then(
+          async (res) => {
+            const json = await res.json();
+            setPostContent(json);
+          }
+        );
+      });
   }, [accessToken]);
+
+  if (walletLoading) {
+    return (
+      <section className="bg-gray-900 h-full min-h-screen flex flex-col items-center px-2 py-12">
+        Loading...
+      </section>
+    );
+  }
+
+  if (!walletLoading && wallet === null && isReady) {
+    push({
+      pathname: "/",
+      query: {
+        callback: asPath,
+      },
+    });
+
+    return null;
+  }
 
   if (!wallet || !event || (partnerRequests || []).length === 0) {
     return (
@@ -256,12 +293,11 @@ export default function DetailsPage() {
           </h3>
 
           <div className="text-white">
-            {
-              description && (
-                <ReactMarkdown>{(description as any).description ?? ""}</ReactMarkdown>
-              )
-            }
-
+            {description && (
+              <div>
+                {(description as any).description ?? ""}
+              </div>
+            )}
           </div>
         </div>
 
@@ -270,16 +306,19 @@ export default function DetailsPage() {
             Post Content
           </h3>
 
-          <div className="text-white">
+          <div className="text-white bg-gray-700 border-gray-600 placeholder-gray-400 p-2 border-2">
             {postContent && (postContent as any).content}
           </div>
 
           {postContent && (
+             <div className="flex py-4 w-full justify-center items-center">
             <img
               src={`${
                 (postContent as any).media[0].item
               }?accessToken=${accessToken}`}
             />
+           </div>
+
           )}
         </div>
 
@@ -333,10 +372,12 @@ export default function DetailsPage() {
             <div className="mb-8 w-full">
               <button
                 type="button"
+                disabled={loading || (event && event.isPosted === true)}
                 onClick={onPost}
                 className="w-full inline-flex justify-center items-center text-lg py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 disabled:opacity-75 disabled:cursor-not-allowed focus:ring-4  focus:ring-lime-900"
               >
-                Post
+                {loading && <LoadingIcon />}
+                {event && event.isPosted === true ? "Done" : "Post"}
               </button>
             </div>
           )}
@@ -346,20 +387,23 @@ export default function DetailsPage() {
               {!dispatcherSetted && (
                 <button
                   type="button"
+                  disabled={loading}
                   onClick={onSetDispatcher}
-                  className="w-full inline-flex justify-center items-center text-lg py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 focus:ring-4  focus:ring-lime-900"
+                  className="w-full inline-flex justify-center items-center text-lg py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 disabled:opacity-75 disabled:cursor-not-allowed focus:ring-4  focus:ring-lime-900"
                 >
+                  {loading && <LoadingIcon />}
                   Change Dispatcher
                 </button>
               )}
               {dispatcherSetted && (
                 <button
                   type="button"
-                  disabled={isPartnerAccept}
+                  disabled={loading || isPartnerAccept}
                   onClick={onBecomePartner}
                   className="w-full inline-flex justify-center items-center text-lg py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 disabled:opacity-75 disabled:cursor-not-allowed focus:ring-4  focus:ring-lime-900"
                 >
-                  {isPartnerAccept ? "Done" : "Accept to become partner"}
+                  {!isPartnerAccept && loading && <LoadingIcon />}
+                  {isPartnerAccept ? "Done" : "Accept Partner Request"}
                 </button>
               )}
             </div>

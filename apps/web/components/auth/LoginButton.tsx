@@ -7,7 +7,7 @@ import { InjectedConnector } from "wagmi/connectors/injected";
 import { WhenLoggedInWithProfile } from "./WhenLoggedInWithProfile";
 import { WhenLoggedOut } from "./WhenLoggedOut";
 
-export function LoginButton({ handle }: { handle?: string }) {
+export function LoginButton({ handle, onLogin }: { handle?: string, onLogin?: any }) {
   const {
     execute: login,
     error: loginError,
@@ -32,6 +32,8 @@ export function LoginButton({ handle }: { handle?: string }) {
     if (connector instanceof InjectedConnector) {
       const signer = await connector.getSigner();
       await login(signer, handle);
+
+      onLogin && onLogin();
     }
   };
 
