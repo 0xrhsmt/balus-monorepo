@@ -256,7 +256,12 @@ export default function DetailsPage() {
           </h3>
 
           <div className="text-white">
-            <ReactMarkdown>{description?.description ?? ""}</ReactMarkdown>
+            {
+              description && (
+                <ReactMarkdown>{(description as any).description ?? ""}</ReactMarkdown>
+              )
+            }
+
           </div>
         </div>
 
@@ -299,7 +304,7 @@ export default function DetailsPage() {
                 </tr>
               </thead>
               <tbody>
-                {(partnerRequests ?? []).map((partnerRequest) => {
+                {(partnerRequests ?? []).map((partnerRequest, i) => {
                   const partner = (partners ?? []).find((partner) => {
                     return partner.profileId.eq(partnerRequest.profileId);
                   });
@@ -307,6 +312,7 @@ export default function DetailsPage() {
                   const pubId = partner?.pubId;
                   return (
                     <Request
+                      key={i}
                       profileId={partnerRequest.profileId}
                       isApproved={isApproved}
                       pubId={pubId}

@@ -22,7 +22,7 @@ const post = async (req, res) => {
   const description = await submarine.getSubmarinedContentByCid(event.descriptionCid)
 
 
-  const url = "https://managed.mypinata.cloud/api/v1/auth/content/jwt";
+  const url = "https://managed.mypinata.cloud/api/v1/auth/content/jwt"
   const headers = {
     "x-api-key": process.env.SUBMARINE_API_KEY,
     "Content-Type": "application/json",
