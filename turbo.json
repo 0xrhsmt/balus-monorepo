@@ -1,6 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env", "**/.env.*local"],
+  "globalDependencies": ["**/.env.*local"],
+  "globalEnv": [
+    "SUBMARINE_API_KEY",
+    "NEXT_PUBLIC_PINATA_GATEWAY_URL",
+  ],
   "pipeline": {
     "build": {
       "outputs": [".next/**", "!.next/cache/**"]
