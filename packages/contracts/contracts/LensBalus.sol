@@ -14,6 +14,7 @@ contract LensBalus {
         string descriptionCid;
         string postContentCid;
         address owner;
+        bool isPosted;
         PartnerRequest[] partnerRequests;
         Partner[] partners;
     }
@@ -103,18 +104,20 @@ contract LensBalus {
             revert("LensBalus: event does not exist");
         if (anEvent.owner != msg.sender)
             revert("LensBalus: you are not the owner of this event");
+        if (anEvent.isPosted == true)
+            revert("LensBalus: event has already been posted");
 
         for (uint256 i = 0; i < anEvent.partners.length; i++) {
             Partner storage partner = anEvent.partners[i];
             if (partner.profileId == 0) continue;
             if (partner.pubId != 0) continue;
-            if (ILensHub(HUB).getDispatcher(partner.profileId) == address(this))
+            if (ILensHub(HUB).getDispatcher(partner.profileId) != address(this))
                 continue; // NOTE: dispatcher is not set
 
             uint256 pubId = ILensHub(HUB).post(
                 LensDataTypes.PostData({
                     profileId: partner.profileId,
-                    contentURI: anEvent.postContentCid,
+                    contentURI: string.concat("https://amaranth-permanent-tarsier-248.mypinata.cloud/ipfs/", anEvent.postContentCid),
                     collectModule: 0x0BE6bD7092ee83D44a6eC1D949626FeE48caB30c, // TODO: collectModule
                     collectModuleInitData: abi.encode(false), // TODO: collectModuleInitData
                     referenceModule: address(0),
@@ -124,6 +127,8 @@ contract LensBalus {
 
             partner.pubId = pubId;
         }
+
+        anEvent.isPosted = true;
     }
 
     function getPartnerRequests(

@@ -1,7 +1,9 @@
 import { Submarine } from "pinata-submarine";
 import { readContract } from "@wagmi/core";
-import { lensBalusABI } from "contracts";
+import { lensBalusABI, lensBalusAddress } from "contracts";
 import { BigNumber } from "ethers";
+
+
 
 const submarine = new Submarine(
   process.env.SUBMARINE_API_KEY,
@@ -11,14 +13,14 @@ const submarine = new Submarine(
 const post = async (req, res) => {
   const id = req.body.id;
 
-  const announcement = await readContract({
-    address: "0xb0B4e3E8Dd190478F2424AD241e3090877E736c7",
+  const event = await readContract({
+    address: lensBalusAddress[80001],
     abi: lensBalusABI,
-    functionName: "announcements",
+    functionName: "events",
     args: [BigNumber.from(id)],
   });
 
-  const info = await submarine.getSubmarinedContentByCid(announcement.descriptionCid);
+  const info = await submarine.getSubmarinedContentByCid(event.descriptionCid);
 
   const unlockableFileIds = [info.items[0].id, info.items[0].metadata.contentId, info.items[0].metadata.imageId]
 
