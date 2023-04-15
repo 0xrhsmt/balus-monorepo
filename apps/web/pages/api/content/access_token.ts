@@ -18,7 +18,7 @@ const post = async (req, res) => {
     args: [BigNumber.from(id)],
   });
 
-  const info = await submarine.getSubmarinedContentByCid(announcement.infoCid)
+  const info = await submarine.getSubmarinedContentByCid(announcement.descriptionCid)
 
   const url = "https://managed.mypinata.cloud/api/v1/auth/content/jwt";
   const headers = {

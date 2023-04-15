@@ -3,14 +3,14 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import {
-  useLensBalusAnnouncements,
   useLensBalusGetPartnerRequests,
   useLensBalusGetPartners,
   usePrepareILensHubSetDispatcher,
   useILensHubSetDispatcher,
   useILensHubGetDispatcher,
   usePrepareLensBalusBecomePartner,
-  useLensBalusBecomePartner
+  useLensBalusBecomePartner,
+  useLensBalusEvents
 
 } from "contracts";
 import { BigNumber } from "ethers";
@@ -19,7 +19,7 @@ import { useActiveProfile, useProfile } from '@lens-protocol/react-web';
 const GATEWAY = process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL
 
 const Request = ({ profileId }: { profileId: BigNumber }) => {
-  const { data: profile } =  useProfile({ profileId: profileId.toHexString() });
+  const { data: profile } =  useProfile({ profileId: profileId.toHexString() as any });
 
   return (
     profile && (
@@ -41,44 +41,38 @@ export default function DetailsPage() {
 
   const { data: profile } = useActiveProfile();
 
-  const { data: announcement } = useLensBalusAnnouncements({
+  const { data: announcement } = useLensBalusEvents({
     enabled: !!id,
-    address: "0xb0B4e3E8Dd190478F2424AD241e3090877E736c7",
     args: [BigNumber.from(id ?? 0)],
   });
 
   const { data: partnerRequests } = useLensBalusGetPartnerRequests({
     enabled: !!id,
-    address: "0xb0B4e3E8Dd190478F2424AD241e3090877E736c7",
     args: [BigNumber.from(id ?? 0)],
   });
-  const index = partnerRequests?.findIndex((request) => request.profileId.eq(BigNumber.from(profile.id)))
+  const index = partnerRequests?.findIndex((request) => request.profileId.eq(BigNumber.from(profile?.id ?? 0)))
   const partnerRequestIndex = index >= 0 ? index : undefined;
 
   const { data: partners } = useLensBalusGetPartners({
     enabled: !!id,
-    address: "0xb0B4e3E8Dd190478F2424AD241e3090877E736c7",
     args: [BigNumber.from(id ?? 0)],
   });
 
   const {data: dispatcher } = useILensHubGetDispatcher({
     enabled: !!profile?.id,
-    address: "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82",
     args: [profile?.id ? BigNumber.from(profile.id) : BigNumber.from(0)],
   })
   const dispatcherSetted = dispatcher && dispatcher.toLowerCase() === '0xb0B4e3E8Dd190478F2424AD241e3090877E736c7'.toLowerCase()
 
   const { config: setDispatcherConfig } = usePrepareILensHubSetDispatcher({
     enabled: !!profile?.id,
-    address: "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82",
     args: [profile?.id ? BigNumber.from(profile.id) : BigNumber.from(0), "0xb0B4e3E8Dd190478F2424AD241e3090877E736c7"],
   })
   const { writeAsync: setDispatcher } = useILensHubSetDispatcher(setDispatcherConfig);
 
   const { config: becomePartnerConfig } = usePrepareLensBalusBecomePartner({
     enabled: !!id && !!partnerRequestIndex,
-    address: "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82",
-    args: [BigNumber.from(id), BigNumber.from(partnerRequestIndex ?? -1)],
+    args: [id ? BigNumber.from(id) : BigNumber.from(0), BigNumber.from(partnerRequestIndex ?? 0)],
   })
   const { writeAsync: becomePartner } = useLensBalusBecomePartner(becomePartnerConfig);
 
@@ -124,13 +118,14 @@ export default function DetailsPage() {
     if (!accessToken || !announcement) return;
 
     fetch(
-      `${GATEWAY}/ipfs/${announcement.infoCid}?accessToken=${accessToken}`
+      `${GATEWAY}/ipfs/${announcement.descriptionCid}?accessToken=${accessToken}`
     ).then(async (res) => {
       const json = await res.json();
+      console.log(json)
       setInfo(json);
     });
     fetch(
-      `${GATEWAY}/ipfs/${announcement.contentCid}?accessToken=${accessToken}`
+      `${GATEWAY}/ipfs/${announcement.postContentCid}?accessToken=${accessToken}`
     ).then(async (res) => {
       const json = await res.json();
       setContent(json);
@@ -154,8 +149,8 @@ export default function DetailsPage() {
       <button onClick={onSubmit}>button</button>
       <button onClick={onPublic}>public</button>
 
-      {(partnerRequests ?? []).map((request) => {
-        return <Request profileId={request.profileId} />
+      {(partnerRequests ?? []).map((request, i) => {
+        return <Request key={i} profileId={request.profileId} />
       })}
 
 

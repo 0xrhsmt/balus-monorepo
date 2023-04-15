@@ -18,7 +18,7 @@ const post = async (req, res) => {
     args: [BigNumber.from(id)],
   });
 
-  const info = await submarine.getSubmarinedContentByCid(announcement.infoCid);
+  const info = await submarine.getSubmarinedContentByCid(announcement.descriptionCid);
 
   const unlockableFileIds = [info.items[0].id, info.items[0].metadata.contentId, info.items[0].metadata.imageId]
 

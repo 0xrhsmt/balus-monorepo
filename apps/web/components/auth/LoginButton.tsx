@@ -1,14 +1,18 @@
-import { useWalletLogin, useWalletLogout } from '@lens-protocol/react-web';
-import { useEffect } from 'react';
-import toast from 'react-hot-toast';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { useWalletLogin, useWalletLogout } from "@lens-protocol/react-web";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { InjectedConnector } from "wagmi/connectors/injected";
 
-import { WhenLoggedInWithProfile } from './WhenLoggedInWithProfile';
-import { WhenLoggedOut } from './WhenLoggedOut';
+import { WhenLoggedInWithProfile } from "./WhenLoggedInWithProfile";
+import { WhenLoggedOut } from "./WhenLoggedOut";
 
 export function LoginButton({ handle }: { handle?: string }) {
-  const { execute: login, error: loginError, isPending: isLoginPending } = useWalletLogin();
+  const {
+    execute: login,
+    error: loginError,
+    isPending: isLoginPending,
+  } = useWalletLogin();
   const { execute: logout, isPending: isLogoutPending } = useWalletLogout();
 
   const { isConnected } = useAccount();
@@ -44,14 +48,22 @@ export function LoginButton({ handle }: { handle?: string }) {
     <>
       <WhenLoggedInWithProfile>
         {() => (
-          <button onClick={onLogoutClick} disabled={isLogoutPending}>
+          <button
+            onClick={onLogoutClick}
+            disabled={isLogoutPending}
+            className="w-full inline-flex justify-center items-center text-lg py-3 px-5 font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 focus:ring-4  focus:ring-lime-900"
+          >
             <strong>Log out</strong>
           </button>
         )}
       </WhenLoggedInWithProfile>
 
       <WhenLoggedOut>
-        <button onClick={onLoginClick} disabled={isLoginPending}>
+        <button
+          onClick={onLoginClick}
+          disabled={isLoginPending}
+          className="w-full inline-flex justify-center items-center text-lg py-3 px-5 font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 focus:ring-4  focus:ring-lime-900"
+        >
           <strong>Log in</strong>
         </button>
       </WhenLoggedOut>

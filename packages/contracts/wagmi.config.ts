@@ -26,7 +26,14 @@ export default defineConfig({
         '**.s.sol/*.json',
         '**.t.sol/*.json',
       ],
-
+      deployments: {
+        LensBalus: {
+          80001: '0xEbfD1C01102f39004e54A52E40ea58E82876c0e8',
+        },
+        ILensHub: {
+          80001: '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82',
+        },
+      },
     }),
     react()
   ],

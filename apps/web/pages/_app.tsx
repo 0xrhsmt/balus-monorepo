@@ -1,3 +1,4 @@
+import '../global.css';
 import { LensConfig, LensProvider, sources, development, appId } from '@lens-protocol/react-web';
 import { bindings as wagmiBindings } from '@lens-protocol/wagmi';
 import type { AppProps } from 'next/app';
