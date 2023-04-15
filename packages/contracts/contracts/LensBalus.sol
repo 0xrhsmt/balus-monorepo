@@ -28,6 +28,13 @@ contract LensBalus {
         uint256 pubId;
     }
 
+    event AnnouncementCreated(
+        uint256 indexed id,
+        string infoCid,
+        string contentCid,
+        uint256[] partnerRequests
+    );
+
     constructor(address hub) {
         if (hub == address(0))
             revert("LensPostScheduler: hub cannot be zero address");
@@ -37,8 +44,8 @@ contract LensBalus {
     function createAnnouncement(
         string memory infoCid,
         string memory contentCid,
-        PartnerRequest[] memory partnerRequests
-    ) public {
+        uint256[] memory partnerRequests
+    ) public returns (uint256) {
         uint256 id = uint256(
             keccak256(abi.encodePacked(msg.sender, blockhash(block.number - 1)))
         );
@@ -51,8 +58,17 @@ contract LensBalus {
         announcement.contentCid = contentCid;
         announcement.owner = msg.sender;
         for (uint256 i = 0; i < partnerRequests.length; i++) {
-            announcement.partnerRequests.push(partnerRequests[i]);
+            announcement.partnerRequests.push(
+                PartnerRequest({
+                    profileId: partnerRequests[i],
+                    isAccepted: false
+                })
+            );
         }
+
+        emit AnnouncementCreated(id, infoCid, contentCid, partnerRequests);
+
+        return id;
     }
 
     function becomePartner(
@@ -108,5 +124,23 @@ contract LensBalus {
 
             partner.pubId = pubId;
         }
+    }
+
+    function getPartnerRequests(
+        uint256 id
+    ) public view returns (PartnerRequest[] memory) {
+        Announcement memory announcement = announcements[id];
+        if (announcement.id == 0) revert("LensBalus: announcement does not exist");
+
+        return announcement.partnerRequests;
+    }
+
+    function getPartners(
+        uint256 id
+    ) public view returns (Partner[] memory) {
+        Announcement memory announcement = announcements[id];
+        if (announcement.id == 0) revert("LensBalus: announcement does not exist");
+
+        return announcement.partners;
     }
 }

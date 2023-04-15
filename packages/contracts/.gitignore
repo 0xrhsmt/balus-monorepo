@@ -34,4 +34,7 @@ node_modules/
 
 # foundry
 foundry-cache
-foundry-out
+foundry-out/*
+!foundry-out/LensBalus.sol
+broadcast/LensBalus.s.sol/80001/**/*
+!broadcast/LensBalus.s.sol/80001/run-latest.json/**/*

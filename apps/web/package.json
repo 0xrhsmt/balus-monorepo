@@ -9,12 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@lens-protocol/client": "^1.0.1",
     "@lens-protocol/react-web": "^1.0.1",
     "@lens-protocol/wagmi": "^1.0.1",
+    "@wagmi/core": "^0.10.9",
+    "contracts": "workspace:*",
+    "ethers": "^5",
+    "formidable": "^2.1.1",
+    "mime-types": "^2.1.35",
     "next": "latest",
+    "pinata-submarine": "^0.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.43.9",
     "react-hot-toast": "^2.4.0",
+    "react-markdown": "^8.0.7",
+    "uuid": "^9.0.0",
     "wagmi": "^0.12.10"
   },
   "devDependencies": {
