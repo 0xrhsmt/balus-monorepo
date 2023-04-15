@@ -28,7 +28,7 @@ export default defineConfig({
       ],
       deployments: {
         LensBalus: {
-          80001: '0x0bf7a14cda72376083f5820780a1bdac19b84848',
+          80001: '0x4920e02c0f62459a2d6a9232bd41f4e9dc40d243',
         },
         ILensHub: {
           80001: '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82',

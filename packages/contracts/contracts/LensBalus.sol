@@ -117,7 +117,7 @@ contract LensBalus {
             uint256 pubId = ILensHub(HUB).post(
                 LensDataTypes.PostData({
                     profileId: partner.profileId,
-                    contentURI: string.concat("https://amaranth-permanent-tarsier-248.mypinata.cloud/ipfs/", anEvent.postContentCid),
+                    contentURI: string.concat("https://palus.mypinata.cloud/ipfs/", anEvent.postContentCid),
                     collectModule: 0x0BE6bD7092ee83D44a6eC1D949626FeE48caB30c, // TODO: collectModule
                     collectModuleInitData: abi.encode(false), // TODO: collectModuleInitData
                     referenceModule: address(0),
