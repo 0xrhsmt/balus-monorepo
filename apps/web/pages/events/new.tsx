@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  LoginButton,
-  WhenLoggedInWithProfile,
-  WhenLoggedOut,
-} from "../../components/auth";
+import { iLensHubABI, iLensHubAddress } from "contracts";
 import {
   usePrepareLensBalusCreateEvent,
   useLensBalusCreateEvent,
@@ -13,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import { useActiveWallet } from "@lens-protocol/react-web";
 import LoadingIcon from "../../components/LoadingIcon";
+import { readContract } from "@wagmi/core";
 
 export default function NewPage() {
   const { push, asPath, isReady } = useRouter();
@@ -23,7 +20,8 @@ export default function NewPage() {
   }>();
   const [eventCreated, setEventCreated] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [profileIds, setProfileIds] = useState([]);
+  console.log(profileIds)
   const {
     formState: { errors, isValid: isFormValid },
     register,
@@ -31,15 +29,27 @@ export default function NewPage() {
     watch,
   } = useForm();
   const image = watch("image");
+  const partnerRequests = watch("partnerRequests");
+
+  useEffect(() => {
+    Promise.all(
+      (partnerRequests ?? "").split("\n").map(async (handle) => {
+        return await readContract({
+          address: iLensHubAddress[80001],
+          abi: iLensHubABI,
+          functionName: "getProfileIdByHandle",
+          args: [handle],
+        });
+      })
+    ).then((_profileIds) => {
+      setProfileIds(_profileIds);
+    });
+  }, [partnerRequests]);
 
   const { config, error } = usePrepareLensBalusCreateEvent({
     enabled:
       !!content?.descriptionCid && !!content?.postContentCid && isFormValid,
-    args: [
-      content?.descriptionCid,
-      content?.postContentCid,
-      [BigNumber.from(30284), BigNumber.from(30618)],
-    ],
+    args: [content?.descriptionCid, content?.postContentCid, profileIds ?? []],
   });
   const { writeAsync: createEvent } = useLensBalusCreateEvent(config);
 
@@ -203,11 +213,7 @@ export default function NewPage() {
             type="submit"
             className="w-full inline-flex justify-center items-center text-lg py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800 disabled:opacity-75 disabled:cursor-not-allowed focus:ring-4  focus:ring-lime-900"
           >
-            {
-              loading && (
-                <LoadingIcon/>
-              )
-            }
+            {loading && <LoadingIcon />}
             Create
           </button>
         </form>
