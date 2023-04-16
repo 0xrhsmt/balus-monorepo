@@ -38,7 +38,7 @@ export default function NewPage() {
     args: [
       content?.descriptionCid,
       content?.postContentCid,
-      [BigNumber.from(30284), BigNumber.from(30252), BigNumber.from(30618)],
+      [BigNumber.from(30284), BigNumber.from(30618)],
     ],
   });
   const { writeAsync: createEvent } = useLensBalusCreateEvent(config);
